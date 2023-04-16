@@ -1,0 +1,49 @@
+num=input('transfer fonksiyonunun payýný giriniz=');
+den=input('transfer fonksiyonunun paydasýný giriniz=');
+T=input('örnekleme zamanýný giriniz=');
+sys1=tf(num,den);
+Gz=c2d(sys1,T);
+[n1,n2]=tfdata(Gz,'v');
+[M1,M2]=tfdata(sys1,'v');
+k1=polyval(n1,1);
+k2=polyval(n2,1);
+Gp1=k1./k2;
+Mp=input('aþým deðerini giriniz=');
+Ts=input('yerleþme zamani deðerini giriniz=');
+E=sqrt((log(Mp./100)^2)./((pi^2)+(log(Mp./100)^2)));
+Wn=4./(Ts*E);
+S1=-Wn*E+i*Wn*sqrt(1-(E^2));
+S2=-Wn*E-i*Wn*sqrt(1-(E^2));
+Z1=exp(S1*T);
+Z2=exp(S2*T);
+z=Z1;
+kz=polyval(n1,z);
+kz1=polyval(n2,z);
+Gpz=kz./kz1;
+ess=(2*E)./Wn;
+a=angle(Gpz);
+b=abs(Gpz);
+c=abs(z);
+d=angle(z);
+Ki=1./(ess*Gp1)
+h=-cos(a)./b;
+k=-2*Ki*c*(c-cos(d));
+l=(c^2)-2*c*cos(d)+1;
+m=-c*sin(a)+cos(d)*sin(a);
+n=b*sin(d);
+o=c./sin(d);
+u=Ki*sin(d);
+p=c-2*cos(d)+(1./c);
+r=sin(a)./b;
+Kp=h+(k./l)+(m./n)
+Kd=o*((u./p)+r)
+payi=[1 0];    % Kararlýlýk analizi
+paydasi=[1 -1];
+zi=tf(payi,paydasi,T);
+pay=[1 -1];
+payda=[1 0];
+zd=tf(pay,payda,T);
+Gpid=Kp+Ki.*zi+Kd.*zd;
+F=1+Gpid.*Gz;
+[f1,f2]=tfdata(F,'v');
+zk=roots(f1)

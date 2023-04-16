@@ -1,0 +1,52 @@
+% % --------- Mp'DEN KSI HESABI(4.32 icin 0.707)----------
+% 
+% A=input('Mp verildiyse 1 e ksi verildiyse 2 ye bas: ');
+% if(A==1)
+%     Asim=input('yuzdeAsim:');
+%     Asm=(log(Asim/100)/pi)^2;
+%     ksi=sqrt(Asm/(1+Asm))
+% else
+%     ksi=input('Ksi: ');
+% end
+%   
+% %-------------TAU HESABI---------------------
+% cikis=input('cikis degeri kac V: ')*0.632;
+% fprintf('tau osiloskopta %1.2f V daki deger\n', cikis);
+% tau=input('tau:');
+% 
+% %-----------K ve ts----------
+% K=input('K: ');ts=input('ts: ');
+% %----------------------------
+
+%-----------
+ksi = 0.707;
+tau = 0.2;
+ts = 1;
+K = 1;
+%-----------
+w = 4/(ts*ksi);
+T = tau/10;
+kii=1; %Sistem önce geriye sonra ileri giderse düzeltmek için kii<1 yap sistemi hýzlandýr.
+       %ÖR:kii=0.65 alabilirsin.(sebebi kp, ki veya kd den en az birinin negatif çýkmasý)
+ess = (2*ksi/w)*kii;
+Kv = 1/ess;
+Gp = tf([K],[tau,1]);
+Gp_z = c2d(Gp,T); 
+
+Gp_z_1 = evalfr(Gp_z,1); 
+
+Ki = T*Kv/Gp_z_1
+
+s1 = -ksi*w + 1i*w*sqrt(1-ksi^2);
+
+z1 = exp(s1*T);
+
+abs_z1 = abs(z1);
+beta = angle(z1);
+
+abs_Gp_z_z1 = abs(evalfr(Gp_z,z1));
+psi = angle(evalfr(Gp_z,z1));
+
+Kd = (abs_z1/sin(beta))*(Ki*sin(beta)/(abs_z1-2*cos(beta)+(1/abs_z1))+sin(psi)/abs_Gp_z_z1)
+
+Kp = (-cos(psi)/abs_Gp_z_z1)-2*Ki*abs_z1*(abs_z1-cos(beta))/(abs_z1^2-2*abs_z1*cos(beta)+1)+(abs_z1*sin(psi)+cos(beta)*sin(psi))/(abs_Gp_z_z1*sin(beta))
