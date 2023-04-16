@@ -1,0 +1,86 @@
+#include "ADUC841.h"
+org		0000
+basla:	
+	
+	mov		tmod,#01h; t0 kullanilacak, gate=0, ct=0 sayici; mod 1
+	mov		dptr,#54473d
+	jnb 	p2.0,z
+	jnb     p2.1,e
+	sjmp	basla
+	z:
+	mov		tl0,dpl
+	mov		th0,dph
+	setb	tr0
+	x:
+	mov		r0,#100d
+	dongu1:
+	mov		r1,#20d
+	dongu2:
+	y:	jnb		tf0,y ; 1 ms dolunca yani 11062 cycle suresi gecince tf0=1 olur
+	clr		tf0
+	mov		tl0,dpl
+	mov		th0,dph
+	jb 	p2.0,z
+	djnz r1,dongu2
+	djnz r0,dongu1
+	
+	mov 	a,#01h
+	t:
+	mov		tl0,dpl
+	mov		th0,dph
+	mov		r0,#100d
+	dongu3:
+	mov		r1,#10d
+	dongu4:
+	k:	jnb		tf0,k ; 1 ms dolunca yani 11062 cycle suresi gecince tf0=1 olur
+	clr		tf0
+	mov		tl0,dpl
+	mov		th0,dph
+	djnz r1,dongu4
+	djnz r0,dongu3
+	rl a
+	mov p0,a
+	cjne a,#01h, t
+	mov p0,#00h
+	sjmp	basla
+	
+	
+	
+	
+	
+	e:
+	mov		tl0,dpl
+	mov		th0,dph
+	setb	tr0
+	mov		r0,#100d
+	dongu5:
+	mov		r1,#20d
+	dongu6:
+	g:	jnb		tf0,g ; 1 ms dolunca yani 11062 cycle suresi gecince tf0=1 olur
+	clr		tf0
+	mov		tl0,dpl
+	mov		th0,dph
+	jb 	p2.1,e
+	djnz r1,dongu6
+	djnz r0,dongu5
+	
+	mov 	a,#80h
+	v:
+	mov		tl0,dpl
+	mov		th0,dph
+	mov		r0,#100d
+	dongu7:
+	mov		r1,#10d
+	dongu8:
+	i:	jnb		tf0,i ; 1 ms dolunca yani 11062 cycle suresi gecince tf0=1 olur
+	clr		tf0
+	mov		tl0,dpl
+	mov		th0,dph
+	djnz r1,dongu8
+	djnz r0,dongu7
+	mov p0,a
+	rr a
+	cjne a,#80h,v
+	mov p0,#00h
+	ljmp	basla
+	end

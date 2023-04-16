@@ -1,0 +1,65 @@
+#include "ADUC841.h"
+org 0000h
+mov r0,#49h
+mov r1,#48h
+mov r2,#160d
+mov r3,#02d
+mov r4,#05d
+dongu1:
+mov b,r2
+mov @r0,b
+mov a,r0
+subb a,#02d
+mov r0,a
+mov a,r2
+rr a
+mov r2,a
+mov @r1,03h
+mov a,r1
+subb a,#02d
+mov r1,a
+mov a,r3
+rl a
+mov r3,a
+djnz r4,dongu1
+
+mov r4,#10d
+mov r0,#39h
+mov r1,#49h
+transfer:
+mov a,@r1
+mov @r0,a
+dec r1
+dec r0
+djnz r4,transfer
+
+mov a,#10d
+dongu2:
+mov a,r2
+mov r0,#39h
+mov b,#9d
+dongu3:
+mov 10h,r0
+mov r1,10h
+dec r0
+mov 50h,b
+mov 51h,a
+mov a,@r0
+mov b,@r1
+subb a,b
+mov b,50h
+mov a,51h
+jc atla
+sjmp birlenmedi
+atla:
+clr c
+mov 10h,@r0
+mov 11h,@r1
+mov @r1,10h
+mov @r0,11h
+birlenmedi:
+djnz b,dongu3
+dec b
+mov r5,a
+djnz r5,dongu2
+end

@@ -1,0 +1,63 @@
+#include "ADUC841.h"
+	org 	0000h
+	sjmp	basla
+	org		0003h
+	ajmp    harici0kesme
+	org		000bh
+	ajmp	timer0kesmesi
+	basla:
+	mov p0,#00h
+	mov 50h,#00h
+	mov		tmod,#00001001b; t0 kullanilacak, gate=0, ct=0 sayici; mod 1
+	mov		tl0,#0F1h
+	mov		th0,#27h
+	setb	ex0  		   ; harici kesme aktif; 
+	setb	it0 		  	 ; dusen kenar kesmeli,	p3.2=1 den 0 gecis kesme olusturacak
+	clr		ie1
+	setb	ea 
+	setb	et0
+	setb	tr0
+	don: 
+	
+	sjmp don	
+	
+	harici0kesme:
+	jnb p3.2,harici0kesme
+	mov		a,50h
+	add		a,#02d
+	mov 	r0,a
+	anl		a,#0Fh
+	cjne	a,#0Ch,buyuk
+	mov		50h,#00d
+	mov		p0,50h
+	reti
+	buyuk:
+	mov		50h,r0
+	mov		p0,50h
+	reti
+	
+	timer0kesmesi:
+	mov		tl0,#0F1h
+	mov		th0,#27h
+	mov		a,50h
+	anl		a,#0Fh
+	mov		DPTR,#freqtoper
+	movc	a,@a+DPTR 
+	mov		r0,a	//no kadar dönme yapilarak gecikme saglandi
+	inc 	r0
+	y:jnb	tf0,y
+	clr		tf0
+	djnz	r0,y
+	
+	mov		a,50h
+	jz		atla
+	cpl		acc.4
+	cpl		acc.5
+	cpl		acc.6
+	cpl		acc.7
+	mov		50h,a
+	mov		p0,50h
+	atla:
+	reti
+	freqtoper: db  00d,250d,100d,67d,50d,40d,33d,28d,25d,22d,20d
+end

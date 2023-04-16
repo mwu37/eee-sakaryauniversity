@@ -1,0 +1,61 @@
+#include "ADUC841.h"
+org 0000h
+basla:
+mov a,#01d
+mov r0,#11h
+dongu1:
+mov b,#01d
+dongu2:
+mov 50h,b
+mov 51h,a
+mul ab
+mov @r0,a
+mov b,50h
+mov a,51h
+inc r0
+inc b
+mov r1,b
+cjne r1,#04d,dongu2
+inc a
+cjne a,#04d,dongu1
+
+mov r0,#21h
+mov r2,#03d
+dongu3:
+mov b,#03d
+dongu4:
+mov 50h,b
+mov 51h,r2
+mov a,r2
+mul ab
+mov @r0,a
+mov b,50h
+mov r2,51h
+inc r0
+djnz b,dongu4
+djnz r2,dongu3
+
+mov r0,#21h
+mov r1,#11h
+mov r2,#31h
+mov r3,#03d
+dongu5:
+mov b,#03d
+dongu6:
+mov 50h,b
+mov a,@r0
+mov b,@r1
+add a,b
+mov 07h,r1
+mov 08h,r2
+mov r1,08h
+mov @r1,a
+mov r1,07h
+mov b,50h
+inc r0
+inc r1
+inc r2
+djnz b,dongu6
+djnz r3,dongu5
+sjmp basla
+end

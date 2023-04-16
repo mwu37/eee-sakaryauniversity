@@ -1,0 +1,41 @@
+#include "aduc841.h"
+	org 	0000h
+BASLA:
+	MOV		ADCCON1,#11111110b	;Fosc/2,T/H-4,VREF HARC,START2
+	MOV 	ADCCON2, #00000001b; TEK ÇEVRIM ADC0 BIT ADRESLENEBILIR.
+	MOV		T2CON,#100000000b	
+	MOV		DPTR,#10225D
+	MOV		TL2,DPL
+	MOV		TH2,DPH
+	MOV		RCAP2H,DPH
+	MOV		RCAP2L,DPL	
+	SETB	TR2
+OKU:clr p2.0
+	SETB 	SCONV ;ADC’den bir veri oku
+	JNB 	ADCI,$ ;çevrim bitene kadar bekle
+	CLR 	ADCI
+	MOV 	R4,ADCDATAH
+	MOV 	R5,ADCDATAL
+	MOV 	A,ADCDATAH
+	ANL		A,#0FH
+	MOV		R4,A
+	CLR 	ADCCON2.0
+	JNB 	TF2,$
+	CLR 	TF2
+	SETB 	SCONV
+	JNB 	ADCI,$ ;çevrim bitene kadar bekle
+	CLR 	ADCI
+	MOV 	R0,ADCDATAH
+	MOV 	R1,ADCDATAL
+	JNB 	TF2,$
+	CLR 	TF2
+	mov		acc,cfg841
+	clr		acc.6			;pwm çikisi p2.7 ayari
+	mov		cfg841,acc
+	mov		pwm1L,R5
+	mov		pwm1H,R4	    ;200Hz pwm frekans ayari
+    mov		pwm0L,R1
+    mov		pwm0H,R0
+	mov		pwmcon,#10010111B
+	sjmp	OKU
+END

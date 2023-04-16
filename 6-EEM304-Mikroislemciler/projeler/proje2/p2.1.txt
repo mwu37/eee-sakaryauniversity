@@ -1,0 +1,68 @@
+;---------------------------------------------------------------------------
+; adc 1. ÖRNEK
+
+;ADC'nin kullanimi (kesme olmadan, yoklamayla kontrol edilmistir)
+;1. ADCCON1 ve ADCCON2 saklayicilari ayarlanir, kanal seçimi yapilir (SCONV=0 yapilmali)
+;2. SCONV=1 yapilir.
+;3. ADCI biti 1 olana kadar kontrol edilir, 1 oldugunda ADC okumasi tamamlanmis demektir.
+;4. ADC okuma bilgisi ADCDATAH ve ADCDATAL saklayicilarindan elde edilir.
+;5. ADC’yi tekrar çalistirmak için ADCI biti temizlenir, 2. adima dönülür.	
+
+	#include "aduc841.h"
+	org 	0000h
+BASLA:
+	MOV 	ADCCON1, #8CH ; 1 0 0 0 1 1 0 0 ; DAHILI REF, CLK=32, TAVSIYE EDILEN
+	MOV 	ADCCON2, #10h ; 0 0 0 1 0 0 0 0 ; KANAL SECIMI.Adc0 seçildi
+	MOV		DACCON,	 #00001101B
+OKU:
+	JNB 	ADCI,$ ;çevrim bitene kadar bekle
+	CLR 	ADCI
+	MOV 	R4,ADCDATAH
+	MOV 	R5,ADCDATAL	
+	mov 	b,#2h
+	mov		a,r4
+	div     ab
+	mov		r4,a
+	mov		a,r5
+	mov 	b,#2h	
+	div     ab
+	mov		r5,a
+	MOV 	DAC0H, R4
+	MOV 	DAC0L,R5
+	x:	MOV 	ADCCON1, #8CH
+		MOV 	ADCCON2, #12h 
+		JNB 	ADCI,$ ;çevrim bitene kadar bekle
+		CLR 	ADCI
+		MOV 	R4,ADCDATAH
+		MOV 	R5,ADCDATAL	
+		MOV		R0,#08H ;HIGH
+		MOV		R1,#00H;2.5 UN YARISINI KAFADAN HESAPLADIK.DEGISKENLERE ATTIK.
+		MOV		A,R4
+		SUBB	A,R0
+		JNC  LOWKISMI
+		JC	X
+	LOWKISMI:	MOV		A,R5
+				SUBB	A,R1
+				JNC		Y
+				JC      X
+		Y:    SETB P0.0		
+
+
+	sjmp	x
+
+END
+	
+	/*	#include "aduc841.h"
+	org 	0000h
+BASLA:
+	MOV 	ADCCON1, #8CH ; 1 0 0 0 1 1 0 0 ; DAHILI REF, CLK=32, TAVSIYE EDILEN
+	MOV 	ADCCON2, #00H ; 0 0 0 0 0 0 0 1 ; KANAL SECIMI
+OKU:
+	SETB 	SCONV ;ADC’den bir veri oku
+	JNB 	ADCI,$ ;çevrim bitene kadar bekle
+	CLR 	ADCI
+	MOV 	R4,ADCDATAH
+	MOV 	R5,ADCDATAL	
+	x:		sjmp	x
+
+END*/
