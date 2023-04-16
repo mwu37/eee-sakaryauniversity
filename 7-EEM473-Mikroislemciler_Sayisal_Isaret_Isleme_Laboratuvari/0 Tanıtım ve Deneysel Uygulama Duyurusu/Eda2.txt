@@ -1,0 +1,16 @@
+		#include "aduc841.h"  
+	ORG  	00H 
+	CLR 	P2.3	
+	MOV 	P0,#00H
+X:	
+	CLR 	TF1
+	MOV 	TMOD,#10H
+	MOV 	DPTR,#10239D
+	MOV 	TL1,DPL
+	MOV 	TH1,DPH
+	SETB	TR1
+	Y:JNB  	TF1,Y
+	CPL 	P0.0
+	SJMP 	X
+
+	END

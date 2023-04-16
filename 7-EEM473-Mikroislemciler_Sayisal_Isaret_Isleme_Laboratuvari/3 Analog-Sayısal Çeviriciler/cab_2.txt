@@ -1,0 +1,38 @@
+#include	 <ADUC841.H>
+org		0000h
+	sjmp	basla
+	basla:
+	mov			40h,#0h
+	mov			41h,#0h
+	mov			daccon,#00101101b
+	mov			t2con,#0h
+	mov			tl2,#00h
+	mov			th2,#00h
+	mov			rcap2l,#00h
+	mov			rcap2h,#00h
+	setb		tr2
+	
+	cabdi:	mov			r0,#84d
+	nasir: jnb	tf2,nasir
+	clr		tf2
+	djnz		r0,nasir
+	clr		c
+	mov		a,#0c8h
+	add		a,40h
+	mov		40h,a
+	mov		a,#00h
+	addc	a,41h
+	mov		41h,a
+	mov		dac0h,41h
+	mov		dac0l,40h
+	mov 	a,41h
+	anl a,#00001111b
+	cjne a,#0fh,cabdi
+	mov a,40h
+	cjne a,#0a0h,cabdi
+	mov 41h,#00h
+	mov 40h,#00h
+	
+	sjmp	cabdi
+	end
+	

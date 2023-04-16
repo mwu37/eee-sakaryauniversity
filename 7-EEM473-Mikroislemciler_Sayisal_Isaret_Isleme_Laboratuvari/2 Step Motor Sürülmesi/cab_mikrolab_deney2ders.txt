@@ -1,0 +1,89 @@
+#include	 "ADUC841.H"
+
+ENA			EQU	P0.4
+ENB			EQU	P0.5
+IN1			EQU	P0.3
+IN2			EQU	P0.2
+IN3			EQU	p0.1
+IN4			EQU	p0.0
+BT5			EQU	p3.3
+TUR			EQU	00h
+ADIM		EQU	01h
+	
+ORG			 0000h
+	sjmp	basla
+ORG			 0003H
+	SJMP	EXT_0
+basla:
+	mov			r0,#7fh
+zero:
+	mov			@r0,#0h
+	djnz		r0,zero
+	mov			p0,#00h
+	
+	mov			tmod,#01h
+	mov			dptr,#10225d
+	mov			tl0,dpl				/// bu kisimda ayar yapildi//////
+	mov			th0,dph
+	setb	ea
+	setb	ex0
+	
+x1:	jb		BT5,x1
+x2:	jnb		BT5,x2
+	mov		a,TUR
+	JZ	x1
+	mov			ADIM,#50
+	setb	tr0
+devam:
+	setb	ENA
+	CLR		ENB
+	SETB	IN1
+	CLR		IN2
+	acall	bekle
+	setb	ENB
+	CLR		ENA
+	SETB	IN3
+	CLR		IN4
+	acall	bekle
+	SETB	ENA
+	CLR		ENB
+	SETB	IN2
+	CLR		IN1
+	acall	bekle
+	SETB	ENB
+	CLR		ENA
+	SETB	IN4
+	CLR		IN3
+	acall	bekle
+	DJNZ	ADIM,devam
+	
+	mov			ADIM,#50d
+	djnz		TUR,devam
+	mov			p0,#00h
+	sjmp	x1
+	
+bekle:
+	jnb		tf0,bekle
+	clr		tf0
+	mov		tl0,dpl
+	mov		th0,dph
+	ret
+	
+EXT_0:
+	acall		gecikme
+	mov			TUR,#3
+	reti
+	
+gecikme:
+	mov			r4,#10d
+	mov			r5,#0ffh
+	mov			r6,#0ffh
+x:	djnz		r5,x
+	mov			r5,#0ffh
+	djnz		r6,x
+	mov			r6,#0ffh
+	djnz		r4,x
+	ret
+end
+	
+	

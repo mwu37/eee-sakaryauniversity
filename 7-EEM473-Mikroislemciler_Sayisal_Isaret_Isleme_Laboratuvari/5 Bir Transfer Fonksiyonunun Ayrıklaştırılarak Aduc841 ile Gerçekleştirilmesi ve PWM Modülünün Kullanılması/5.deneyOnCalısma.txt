@@ -1,0 +1,64 @@
+#include <ADUC841.H>
+
+org 00h
+	sjmp basla
+
+	basla:
+	mov b, #00h
+	clr a
+	clr c
+	mov daccon, #00101101b //12bit,:,dac0harici,:,dac0cikisidac0h/l,dacilayazildiginda,:,dac0aktif
+	//sayi1=2500d,sayi2=0.685d=>sayi1Xsayi2=1712.5
+	//sayi2=0.685X65535=44891.475
+	//sayi1=2500d=09C4h//r0,r1 olsun
+	//sayi2=44891=AF5Bh//r2,r3 olsun
+	mov r0, #0c4h
+	mov r1, #09h
+	mov r2, #5bh
+	mov r3, #0afh
+	
+	push b
+	push dpl
+	mov a,r0
+	mov b, r2
+	mul ab
+	push acc
+	push b
+	mov a, r0
+	mov b,r3
+	mul ab 
+	pop 00h
+	add a,r0
+	mov r0,a
+	clr a
+	addc a,b
+	mov dpl,a
+	mov a, r2
+	mov b, r1
+	mul ab
+	add a,r0
+	mov r0,a
+	mov a,dpl
+	addc a,b
+	mov dpl,a
+	clr a
+	addc a, #00h
+	push acc
+	mov a, r3
+	mov b,r1
+	mul ab
+	add a,dpl
+	mov r2, a
+	pop acc
+	addc a,b
+	mov r3,a
+	mov r1, 00h
+	pop 00h
+	pop dpl
+	pop b
+	
+	
+	mov dac0h, r3
+	mov dac0l, r2
+	
+end

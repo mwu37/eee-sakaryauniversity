@@ -1,0 +1,57 @@
+#include	 "ADUC841.H"
+ORG			 0000h
+	sjmp	basla
+ORG			 003h
+	sjmp		h_kesme0
+basla:
+	clr			p0.2
+	mov			tmod,#01h
+	mov			tl0,#00h				
+	mov			th0,#00h
+	setb		it0
+	setb		ex0
+	setb		ea
+	mov			r3,#00h		/// her kesme geldinde kesme alt programda bir artirilcak//
+n:	jb			p3.3,n
+s:	jnb			p3.3,s
+r:
+	cjne		r3,#00h,D	// kesme gelmediyse gelmesini bekliycek///
+	sjmp		n
+D:	mov			05h,r3
+	mov			r1,05h
+m:	
+	setb		p0.2
+	lcall		yoklama
+	clr			p0.2
+	lcall		yoklama
+	djnz		r1,m
+	mov			r3,#00h
+	sjmp		n
+	
+yoklama:
+	setb		tr0
+	mov			r2,#84d
+tastimi:	jnb	tf0,tastimi
+	clr			tf0
+	djnz		r2,tastimi
+	mov			tl0,#00h				
+	mov			th0,#00h
+	ret
+	
+h_kesme0:
+	acall		gecikme
+	inc			r3
+	reti
+	
+gecikme:
+	mov			r4,#10d
+	mov			r5,#0ffh
+	mov			r6,#0ffh
+x:	djnz		r5,x
+	mov			r5,#0ffh
+	djnz		r6,x
+	mov			r6,#0ffh
+	djnz		r4,x
+	ret
+	
+end

@@ -1,0 +1,64 @@
+#include <aduc841.h>
+DTMF1 		EQU 	20H
+DTMF_1VERI 	EQU 	22H
+SIN_Y3HB	EQU 	24H
+SIN_Y3LB 	EQU 	25H
+
+org 00h
+	sjmp basla
+org 000bh
+    sjmp A1_DTMF_1
+	basla:
+	mov A, #00h
+mov DACCON, #00101101b //dac 12 bit,harici ref,dac0 aktif, veri Li ye yazildiginda güncellenir
+mov tmod, #00000001 //t0 aktif,mod1
+//65314d=ff22h yuklendi //1000000usn=11059200 kre dalgaysa 20usn=221 ve 65535-221=65314
+mov tl0, #20H
+mov th0, #0ffH
+setb et0
+setb ea
+setb tr0
+
+	MOV 	DPTR,#DTMF_1_VERI
+	MOV 	A,#00H
+	MOVC 	A,@A+DPTR
+	MOV 	DTMF_1VERI,A
+	
+	setb tr0
+	
+	DUR:sjmp DUR
+	
+	A1_DTMF_1:
+	MOV 	DPTR,#DTMF_1
+	MOV 	A,DTMF1
+	MOVC 	A,@A+DPTR
+	MOV 	SIN_Y3HB,A
+	INC 	DTMF1
+	MOV 	A,DTMF1
+	MOVC 	A,@A+DPTR
+	MOV 	SIN_Y3LB,A
+	
+	INC 	DTMF1
+	MOV 	A,DTMF1
+	CLR 	C
+	SUBB 	A,DTMF_1VERI
+	JC 		AD_DTMF1
+	MOV 	DTMF1,#00H
+AD_DTMF1:
+mov tl0, #20H
+mov th0, #0ffH
+	RETI
+	
+	
+
+
+DTMF_1_VERI:
+	DB 		0x08E
+DTMF_1:
+	DW 		0x3D6, 0x49A, 0x55A, 0x614, 0x6C3, 0x766, 0x7F9, 0x879, 0x8E6, 0x93D, 0x97D, 0x9A6, 0x9B6, 0x9AF
+	DW 		0x991, 0x95D, 0x914, 0x8B9, 0x84D, 0x7D4, 0x750, 0x6C4, 0x633, 0x59F, 0x50C, 0x47D, 0x3F5, 0x375
+	DW		0x301, 0x299, 0x240, 0x1F6, 0x1DB, 0x194, 0x17B, 0x173, 0x17A, 0x18E, 0x1AE, 0x1D9, 0x20D, 0x246
+	DW		0x283, 0x2C2, 0x2FF, 0x339, 0x36E, 0x39C, 0x3C0, 0x3DA, 0x3E8, 0x3EA, 0x3E0, 0x3C8, 0x3A5, 0x376
+	DW 		0x33C, 0x2FA, 0x2B1, 0x263, 0x212, 0x1C1, 0x172, 0x127, 0x0E4, 0x0AA, 0x07C, 0x05B, 0x04A, 0x04A
+	DW 		0x3D6
+		END

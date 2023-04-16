@@ -1,0 +1,46 @@
+#include	 <ADUC841.H>
+org		0000h
+	sjmp	basla
+ORG			 002bH
+	SJMP	t2_keme
+basla:
+	mov			40h,#0h
+	mov			41h,#0h
+	mov			daccon,#01111101b
+	mov			t2con,#0h
+	mov			dptr,#54476d
+	mov			tl2,dpl
+	mov			th2,dph
+	mov			rcap2l,dpl
+	mov			rcap2h,dph
+	setb		ea
+	setb		et2
+	setb		tr2
+sonsuz:
+	sjmp sonsuz
+t2_keme:
+	clr tf2
+	clr		c
+	//mov		dptr,#200d
+	mov		a,#0c8h
+	add		a,40h
+	mov		40h,a
+	mov		a,#00h
+	addc	a,41h
+	mov		41h,a
+	mov		dac0h,41h
+	mov		dac0l,40h
+	mov 	a,41h
+	anl a,#00001111b
+	cjne a,#0fh,son
+	mov a,40h
+	cjne a,#0a0h,son
+	mov 41h,#00h
+	mov 40h,#00h
+	//sjmp son
+			
+
+son:reti
+	
+	end
+		

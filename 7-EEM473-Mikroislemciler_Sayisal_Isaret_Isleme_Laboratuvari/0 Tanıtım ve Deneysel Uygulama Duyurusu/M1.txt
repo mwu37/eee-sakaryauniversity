@@ -1,0 +1,21 @@
+		#include "aduc841.h"  
+	ORG  	0000 
+	CLR		P0.0
+	CLR		P0.1
+	CLR		P0.2
+	CLR		P0.3
+	CLR		P0.4
+	CLR		P0.5
+	CLR		P0.6
+	CLR		P0.7
+BASLA: 	
+	JNB 	P2.1,DAL
+	MOV 	A,#00000001B
+X:	MOV 	R1,#7D
+	MOV 	P0,A
+	RL		A
+	MOV 	P0,A
+	DJNZ	R1,X
+DAL:
+	SJMP 	BASLA
+	END

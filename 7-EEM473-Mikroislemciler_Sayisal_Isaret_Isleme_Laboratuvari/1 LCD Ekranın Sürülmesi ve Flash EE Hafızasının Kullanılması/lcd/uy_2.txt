@@ -1,0 +1,20 @@
+#include<aduc841.h>
+WRITE    EQU    02h             ; 'write page'
+VERIFY   EQU    04h             ; 'verify page'
+ERASE    EQU    05h             ; 'erase page'
+;____________________________________________________________________
+ORG      0000h
+JMP	  MAIN
+MAIN:
+	MOV     EADRH,#0              ;3.sayfa seçildi 
+            MOV     EADRL,#3
+	MOV     ECON,#ERASE	;yazma yapmadan önce ilgili byte silinmeli
+
+	MOV     EDATA1,#0AH	; 
+
+	MOV     ECON,#WRITE	;3. sayfadaki 1. Byte alanina H'0F yaz
+
+	MOV     ECON,#VERIFY	;yazma islemini dogrula.. 
+	MOV	  A,ECON
+	JNZ	  MAIN
+END

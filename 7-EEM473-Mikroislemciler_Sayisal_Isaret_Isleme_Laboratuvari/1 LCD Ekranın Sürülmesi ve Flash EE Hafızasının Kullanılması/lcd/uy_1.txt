@@ -1,0 +1,108 @@
+#include<aduc841.h>
+
+LRS	EQU	P2.5
+LEE	EQU	P2.6
+LCD	EQU	P0
+RW     EQU    P2.7
+
+	ORG     00H
+	sjmp	BASLA
+BASLA:
+	clr        RW			; LCD’den okuma modunu iptal et.
+	mov	r0,	#07fH             ; Temizleme
+temiz:	mov	@r0,	#00H               ; Temizleme
+	djnz	r0,	temiz               ; Temizleme
+
+	lcall  	lcd_ayar                      ; LCD’nin Baslangiç Ayarlari Yapiliyor.
+	mov     dptr,	#Data1
+;________________________________ 1. Satir ____
+	clr     	LRS	       		;komut girisi
+	mov     a,	#83H    	;birinci satir
+	lcall   	yaz 	            	;baslangic adresi
+	setb   	LRS		     	;veri girisi
+	mov	r0,	#00H
+str1:	mov	a,	r0
+	movc	a,	@a+dptr
+	cjne	a,	#'0',	go1
+	sjmp	str2
+go1:	lcall	yaz
+	inc	r0
+	sjmp	str1
+;__________________________________ 2. Satir ____
+str2:	clr    	LRS		 	;komut girisi
+	mov     a,#0c1H    		;ikinci satir
+	lcall   	yaz            	  	;baslangic adresi
+	setb   	LRS         		;veri girisi
+	mov     dptr,	#Data2
+mov	r0,	#00H
+go:	mov	a,	r0
+	movc	a,	@a+dptr
+	cjne	a,	#'0',	go2
+	sjmp	dur
+go2:	lcall	yaz
+	inc	r0
+	sjmp	go
+DUR:	SJMP	DUR
+;________________LCD Ayari______________________
+lcd_ayar:
+	clr	LEE
+       	clr    	LRS			;komut girisi
+	;----------------------------------------------------
+	; Minimum 15 ms bekleme	
+	lcall   	gecik
+	lcall   	gecik
+	lcall   	gecik
+	;----------------------------------------------------
+	; ---------------------------------------------------
+	; LCD’nin Sürülmesi için Gerekli Kod Parçacigi
+	; RS  RW  DB7   DB6   DB5   DB4   DB3   DB2   DB1   DB0
+	;  0     0       0          0         1        1         *        *        *         *    => 30H
+	mov     a,	#30H
+	lcall   	yaz
+	lcall   	gecik
+	mov     a,	#30H
+	lcall   	yaz
+	lcall   	gecik
+	mov     a,	#30H
+	lcall   	yaz
+	;----------------------------------------------------
+	;----------------------------------------------------
+	; LCD Ayarlari 
+
+	; RS  RW  DB7   DB6   DB5   DB4   DB3   DB2   DB1   DB0
+	;  0     0       0          0         1        1         N       F        *         *
+	;  0     0       0          0         1        1         1        1        *         *    => 3CH =>  N=1 icin 2 satir, F=1 icin 5x10 LCD	
+	mov     a,	#3cH            ;2 satir, 5x10 pixel
+	lcall   	yaz
+
+	; RS  RW  DB7   DB6   DB5   DB4   DB3   DB2   DB1   DB0
+	;  0     0       0          0         0        0         1        D       C         B    
+	;  0     0       0          0         0        0         1        1        1          1  => OFH =>  D=1 Ekran Açik, C=1 Kursör Açik, B=1 Blink Açik.
+	mov     a,	#0fH            ;Ekran, Kursör ve Blink açik
+	lcall   	yaz
+	mov     a,	#01H            ;Ekrani sil, kursör basa dön.
+	lcall   	yaz
+
+	; RS  RW  DB7   DB6   DB5   DB4   DB3   DB2   DB1   DB0
+	;  0     0       0          0         0        0         0        1       I/D        S    
+	;  0     0       0          0         0        0         0        1        1          0  => O6H =>  I/D=1 Kursör Arttir, S=0 Ekran Kaydirma Kapali
+	mov     a,	#06H            ;Giris Modu => Kursör pozisyonunu artir
+	lcall   	yaz
+	ret
+;______________LCD Ayari Bitti______________________
+yaz:     setb    LEE
+	lcall   gecik
+	mov  LCD,a     ; LCD = PortO (P0)
+	clr     LEE
+ 	ret
+;_______________________________________________
+gecik:	mov 	r3,	#4fh
+w2:     mov     r4,	#0ffh
+w1:     djnz     r4,	w1
+	djnz    r3,	w2
+	ret
+;_______________________________________________
+
+Data1:   DB     'MIKRO LAB.0'
+Data2:	 DB	'SAU EEM BOLUMU0'
+end

@@ -1,0 +1,53 @@
+#include"aduc841.h"
+
+	org 00h
+		sjmp basla
+	org 0003h
+		sjmp buton4	
+basla:
+		clr p2.3
+		mov p0,#00h		//Led3 söndürdük
+		mov r1,#01h
+		setb EA			// kesmeler açildi
+		setb EX0 		// harici kesme sifir açildi
+		
+y2:		jb p3.3,y2		// bt5 basildigini denetliyoruz
+y:		jnb	p3.3,y	
+	
+don:	djnz r1,LED
+		sjmp basla
+LED:	setb p0.2
+		acall sayma
+		clr p0.2
+		acall sayma
+		sjmp don
+		
+		
+
+;_______________________sayma(1sn)____________________________
+sayma:
+		mov r0,#0abh			//168 kere tam sayma yapicagi için r0'a 169 degeri verildi		
+		clr tr0
+		clr tf0
+		mov tmod,#01h
+		mov th0,#3eh
+		mov tl0,#2bh
+		setb tr0				// ilk kalan kisim saydirma için ayarlar yapildi
+x:		jnb tf0,x
+x2:		clr tr0
+		clr tf0
+		mov th0,#00h
+		mov tl0,#00h
+		setb tr0
+x1:		jnb tf0,x1
+		djnz r0,x2
+		ret
+;_________________________harici kesme_________________________		
+buton4:
+		jnb p3.2,buton4
+		mov a,r1
+		add a,#01h
+		mov r1,a
+		reti
+
+end

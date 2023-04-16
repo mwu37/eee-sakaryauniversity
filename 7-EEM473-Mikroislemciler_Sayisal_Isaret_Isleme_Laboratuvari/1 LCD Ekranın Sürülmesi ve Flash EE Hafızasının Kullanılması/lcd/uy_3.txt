@@ -1,0 +1,119 @@
+#include<aduc841.h>
+LRS	EQU	P2.5
+LEE	EQU	P2.6
+LCD	EQU	P0
+RW     EQU    P2.7
+
+
+	ORG   00H
+	sjmp	BASLA
+            ORG	0BH
+	LJMP	TIMER0
+BASLA:
+	clr	 RW
+	mov     r0,	#07fH
+temiz:	mov	@r0,	#00H
+	djnz	r0,	temiz
+	lcall     lcd_ayar
+	mov     dptr,	#Sayi
+;_______________________________________________
+	MOV     EADRH,	#0h           	;veri hafizanin
+            MOV     EADRL,	#3h                  ;3.sayfasi seçildi
+	MOV     ECON,	#01 		;3.sayfadaki ilk Byte'in içerigi okundu
+	MOV     R1,	EDATA1		;ve R1 saklayicisina aktarildi..
+;_______________________________________________
+	clr     	LRS			;LCD için komut girisi
+	mov     a,	#80H      	;baslangiç adresi         
+	lcall   	yaz
+	setb    	LRS            	 	;LCD için veri girisi
+;_______________________________________________
+	MOV	TMOD,	#081H
+	MOV	TH0,	#00	       	;Timer0 ayarlandi
+	MOV	TL0,	#00
+	MOV	 R0,	#84d           	;500ms=5.9ms* 84
+	SETB   EA
+	SETB	 ET0
+	SETB	 TR0	              	;Timer0 start
+;___________________ ____________________________
+	MOV       A,	R1	   	;Veri hafizadan okunan deger R1 de tutuluyordu..
+	MOVC    A,	@A+DPTR    ;ilk degeri
+	LCALL   YAZ                       ;baslangiç adresine yaz..
+
+DUR:	CJNE     R0,	#0,	DUR 	;500ms doldumu?
+	MOV     R0,	#84d               ;doldu..
+	DEC	  R1                            ;degeri 1 azalt
+	MOV	  A,	R1
+	MOVC  A,	@A+DPTR         ;LCD ya yaz..
+	LCALL YAZ
+	CJNE	    R1,	#0,	DUR
+STOP:	SJMP	STOP
+;_______________________________________________
+TIMER0:    dec	R0
+	        reti
+
+
+
+;________________LCD Ayari______________________
+lcd_ayar:
+	clr	LEE
+       	clr    	LRS			;komut girisi
+	;----------------------------------------------------
+	; Minimum 15 ms bekleme	
+	lcall   	gecik
+	lcall   	gecik
+	lcall   	gecik
+	;----------------------------------------------------
+	; ---------------------------------------------------
+	; LCD’nin Sürülmesi için Gerekli Kod Parçacigi
+	; RS  RW  DB7   DB6   DB5   DB4   DB3   DB2   DB1   DB0
+	;  0     0       0          0         1        1         *        *        *         *    => 30H
+	mov     a,	#30H
+	lcall   	yaz
+	lcall   	gecik
+	mov     a,	#30H
+	lcall   	yaz
+	lcall   	gecik
+	mov     a,	#30H
+	lcall   	yaz
+	;----------------------------------------------------
+	;----------------------------------------------------
+	; LCD Ayarlari 
+
+	; RS  RW  DB7   DB6   DB5   DB4   DB3   DB2   DB1   DB0
+	;  0     0       0          0         1        1         N       F        *         *
+	;  0     0       0          0         1        1         1        1        *         *    => 3CH =>  N=1 icin 2 satir, F=1 icin 5x10 LCD	
+	mov     a,	#3cH            ;2 satir, 5x10 pixel
+	lcall   	yaz
+
+	; RS  RW  DB7   DB6   DB5   DB4   DB3   DB2   DB1   DB0
+	;  0     0       0          0         0        0         1        D       C         B    
+	;  0     0       0          0         0        0         1        1        1          1  => OFH =>  D=1 Ekran Açik, C=1 Kursör Açik, B=1 Blink Açik.
+	mov     a,	#0fH            ;Ekran, Kursör ve Blink açik
+	lcall   	yaz
+	mov     a,	#01H            ;Ekrani sil, kursör basa dön.
+	lcall   	yaz
+
+	; RS  RW  DB7   DB6   DB5   DB4   DB3   DB2   DB1   DB0
+	;  0     0       0          0         0        0         0        1       I/D        S    
+	;  0     0       0          0         0        0         0        1        1          0  => O6H =>  I/D=1 Kursör Arttir, S=0 Ekran Kaydirma Kapali
+	mov     a,	#06H            ;Giris Modu => Kursör pozisyonunu artir
+	lcall   	yaz
+	ret
+;______________LCD Ayari Bitti______________________
+
+yaz:     setb    LEE
+	lcall   gecik
+  	mov     LCD,a
+	clr     LEE
+ 	ret
+;_______________________________________________
+gecik:	mov 	r3,	#4fh
+w2:     mov     r4,	#0ffh
+w1:     djnz    r4,	w1
+	djnz    r3,	w2
+	ret
+
+;_______________________________________________
+Sayi:   DB      '0123456789ABCDEF'
+
+end

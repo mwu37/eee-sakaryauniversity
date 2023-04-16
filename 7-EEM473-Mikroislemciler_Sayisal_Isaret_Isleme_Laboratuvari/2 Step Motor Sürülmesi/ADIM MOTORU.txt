@@ -1,0 +1,91 @@
+#include <aduc841.h>
+;program etiketleri tanimlaniyor
+ENA EQU P0.4 ; Sürücü A köprüsü enerjilendirme girisi.
+ENB EQU P0.5 ; Sürücü B köprüsü enerjilendirme girisi.
+IN1 EQU P0.3 ; Sürücü IN1girisi.
+IN2 EQU P0.2 ; Sürücü IN2girisi.
+IN3 EQU P0.1 ; Sürücü IN3girisi.
+IN4 EQU P0.0 ; Sürücü IN4girisi.
+BT5 EQU P3.3 ; Program baslatma butonu.
+TUR EQU 00H ; Kullanicidan alinan tur bilgisi.
+ADIM EQU 01H ; Adim kontrol etiketi.
+ORG 0000h
+JMP Basla
+ORG 0003H ; Dis kesme INT0-P3.2
+JMP EXT_0
+Basla: 
+MOV TUR, #00H
+MOV R0,#7FH
+ZERO:
+MOV @R0,#0
+DJNZ R0,ZERO ; Son 3 satir ile Hafiza Temizleme islemi
+MOV p0,#00h ; Sürücü giris enerjileri kesildi…
+MOV TMOD,#81H ; Timer0 16-Bit Zamanlayici
+MOV dptr,#10225D ; 5ms için baslangiç degeri
+MOV tl0,dpl
+MOV th0,dph
+SETB EA ; Kesmeler aktif
+SETB EX0 ; Dis kesme0 aktif
+X1: JB BT5, X1 ; BT5’e basildi mi?
+X2: JNB BT5, X2 ; BT5 birakildi mi?
+MOV A, TUR
+JZ X1
+MOV A,tur ; En az 1 tur girilmeli...
+JZ X1 ; Tur sayisi 0 ise tekrar kesme ve BT 5’e basilmasi bekleniyor.
+MOV ADIM,#50 ; 50*4=200 adimli step motor
+SETB TR0 ; Timer0 basla komutu
+;==================================================
+DEVAM: ; Step motor sargilari sirasiyla enerjilendirilerek dönmesi saglaniyor.
+SETB ENA ; Sürücü A köprüsü enerjilendirildi.
+CLR ENB ; Sürücü B köprüsü enerjisi kesildi.
+SETB IN1 ; Sürücü IN1 girisi enerjilendirildi.
+CLR IN2 ; Sürücü IN2 girisi enerjisi kesildi.
+ACALL BEKLE ; Tadim süresi kadar bekle…
+SETB ENB ; Sürücü B köprüsü enerjilendirildi.
+CLR ENA ; Sürücü A köprüsü enerjisi kesildi.
+SETB IN3 ; Sürücü IN3 girisi enerjilendirildi.
+CLR IN4 ; Sürücü IN4 girisi enerjisi kesildi.
+ACALL BEKLE ; Tadim süresi kadar bekle…
+SETB ENA ; Sürücü A köprüsü enerjilendirildi.
+CLR ENB ; Sürücü B köprüsü enerjisi kesildi.
+SETB IN2 ; Sürücü IN2 girisi enerjilendirildi.
+CLR IN1 ; Sürücü IN1 girisi enerjisi kesildi.
+ACALL BEKLE ; Tadim süresi kadar bekle…
+SETB ENB ; Sürücü B köprüsü enerjilendirildi.
+CLR ENA ; Sürücü A köprüsü enerjisi kesildi.
+SETB IN4 ; Sürücü IN4 girisi enerjilendirildi.
+CLR IN3 ; Sürücü IN3 girisi enerjisi kesildi.
+ACALL BEKLE ; Tadim süresi kadar bekle…
+DJNZ ADIM,DEVAM ;50*4=200 adim tamamlandi mi?
+;_______________________________ 1 TUR DONDU... ________
+MOV ADIM,#50d ; Milin 1 tur dönmesi için
+DJNZ TUR,DEVAM ; Tur sayisi tamamlandi mi?
+MOV p0,#00h ; Tur sayisi tamamlandi. Sürücü giris enerjileri kesildi…
+MOV TUR, #00H
+SJMP X1
+;==================================================
+BEKLE:
+JNB TF0,BEKLE ; Tasma oldu mu?
+CLR TF0
+MOV tl0,dpl ; 5ms baslangiç degerlerini yeniden yükle.
+MOV th0,dph
+RET
+;==================================================
+EXT_0:
+ACALL GECIKME
+INC TUR ; Kullanici tur bilgisini girer.
+RETI
+;==================================================
+GECIKME: ; Bas-birak butonun bozuculardan etkilenmemesi icin bir gecikme konulur.
+; Iç içe döngü ile saglanmistir.
+MOV R4,#10d
+MOV R5,#0FFh
+MOV R6,#0FFh
+x: DJNZ R5,x
+MOV R5,#0FFh
+DJNZ R6,x
+MOV R6,#0FFh
+DJNZ R4,x
+RET
+;==================================================
+END

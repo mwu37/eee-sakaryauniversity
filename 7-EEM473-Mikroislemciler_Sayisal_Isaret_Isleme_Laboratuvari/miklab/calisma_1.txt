@@ -1,0 +1,219 @@
+#include <ADUC841.H>
+LRS			EQU	P2.5
+LEE			EQU	P2.6
+LCD			EQU	P0
+RW			EQU	P2.7
+	
+ORG			 0000h
+	sjmp	basla
+basla:
+	mov			tmod,#01h //T0
+	mov			dptr,#0000h
+	mov			tl0,dpl				/// bu kisimda ayar yapildi//////
+	mov			th0,dph
+	
+	;------------------------------
+	clr		RW
+	mov		r0,#07fh
+temiz: mov	@r0,#00h
+	djnz	r0,temiz
+	lcall	lcd_ayar		/// lcd ayari   ////
+	MOV DPTR, #DATA1
+	
+	;----------------
+	CLR LRS
+	MOV A, #83H
+	LCALL YAZ
+	SETB LRS
+	MOV R0,#00H
+	STR1: MOV A, R0
+	MOVC A, @A+DPTR
+	CJNE A, #'0', GO1
+	SJMP STR2
+	GO1: LCALL YAZ
+	INC R0
+	SJMP STR1
+	------------------
+	STR2: CLR LRS
+	MOV A,#0C1H
+	LCALL YAZ
+	SETB LRS
+	MOV DPTR, #DATA2
+	MOV R0, #00H
+	GO:MOV A, R0
+	MOVC A, @A+DPTR
+	CJNE A, #'0', GO2
+	SJMP DUR
+	GO2:LCALL YAZ
+	INC R0
+	SJMP GO
+	DUR:SJMP DUR
+	;--------------------------
+	
+
+lcd_ayar:
+	clr		LEE
+	clr		LRS				//komut girisi
+	lcall	bekle_6_m_s
+	lcall	bekle_6_m_s
+	lcall	bekle_6_m_s
+	
+	mov		a,#30h
+	lcall	yaz
+	lcall	bekle_6_m_s
+	mov		a,#30h
+	lcall	yaz
+	lcall	bekle_6_m_s
+	mov		a,#30h
+	lcall	yaz
+	mov		a,#3ch
+	lcall	yaz				// 2satir,5*10 pixel
+	mov		a,#0fh			// ekran kursor ve blink acik
+	lcall 	yaz
+	mov		a,#01h
+	lcall	yaz
+	mov		a,#06h			// giris modu= kursorpozisyonunu artir
+	lcall	yaz
+	ret
+	;------------------------
+yaz:	setb	LEE
+lcall	bekle_6_m_s
+mov		LCD,a
+clr		LEE
+ret
+;--------------------
+bekle_6_m_s:
+	setb		tr0
+tastimi:jnb			tf0,tastimi		////0_1_sn lik alt program///////
+	clr			tf0
+	ret
+	;------------------------
+	DATA1: DB 'MIKRO LAB.0'
+	DATA2: DB 'SAU EEM BOLUMU0'
+		
+end
+	
+	
+	
+	
+	
+;	2.UYGULAMA
+		WRITE	EQU	02H
+		VERIFY	EQU	04H
+		WRITE	EQU	05H
+		;----------------------------------------
+		ORG		000H
+		JMP		MAIN
+		MAIN:
+		MOV		EADRH,#0
+		MOV		EADRL,#3
+		MOV		ECON,#ERASE
+		
+		MOV		EDATA1,#0AH
+		
+		MOV		ECON,#WRITE
+		
+		MOV		ECON,#VERIFY
+		MOV		A,ECON
+		JNZ		MAIN
+	END
+		
+		
+		
+		;3.UYGULAMA
+		#include <ADUC841.H>
+LRS			EQU	P2.5
+LEE			EQU	P2.6
+LCD			EQU	P0
+RW			EQU	P2.7
+	ORG			 0000h
+	sjmp	basla
+	ORG 0BH
+		LJMP TIMER0
+		BASLA:
+		clr		RW
+	mov		r0,#07fh
+temiz: mov	@r0,#00h
+	djnz	r0,temiz
+	lcall	lcd_ayar
+	MOV DPTR, #SAYI
+	;----------------------------
+	MOV EADRH, #0H
+	MOV EADRL, #3H
+	MOV ECON, #01H
+	MOV R1, EDATA1
+	;----------------------------
+	
+	CLR LRS
+	MOV A, #80H
+	LCALL YAZ
+	SETB LRS
+	;-------------------------
+	MOV TMOD, #01H
+	mov			dptr,#0000h
+	mov			tl0,dpl				/// bu kisimda ayar yapildi//////
+	mov			th0,dph
+	MOV R0, #84D
+	SETB EA
+	SETB ET0
+	SETB TR0
+	;-----------------------
+	MOV A, R1
+	MOVC A, @A+DPTR
+	LCALL YAZ
+	
+	DUR: CJNE R0, #0H, DUR
+	MOV R0,#84D
+	DEC R1
+	MOV A, R1
+	MOVC A, @A+DPTR
+	LCALL YAZ
+	CJNE R1, #0H, DUR
+	STOP:SJMP STOP
+	;----------------------
+	TIMER0:DEC R0
+	RETI
+	;------------------
+	lcd_ayar:
+	clr		LEE
+	clr		LRS				//komut girisi
+	lcall	bekle_6_m_s
+	lcall	bekle_6_m_s
+	lcall	bekle_6_m_s
+	
+	mov		a,#30h
+	lcall	yaz
+	lcall	bekle_6_m_s
+	mov		a,#30h
+	lcall	yaz
+	lcall	bekle_6_m_s
+	mov		a,#30h
+	lcall	yaz
+	mov		a,#3ch
+	lcall	yaz				// 2satir,5*10 pixel
+	mov		a,#0fh			// ekran kursor ve blink acik
+	lcall 	yaz
+	mov		a,#01h
+	lcall	yaz
+	mov		a,#06h			// giris modu= kursorpozisyonunu artir
+	lcall	yaz
+	ret
+	;------------------------
+	
+	yaz:	setb	LEE
+lcall	bekle_6_m_s
+mov		LCD,a
+clr		LEE
+ret
+;--------------------------
+bekle_6_m_s: MOV R3, #4FH
+W2:MOV R4, #0FFH
+W1:DJNZ R4, W1
+DJNZ R3, W2
+RET
+;---------------------------
+SAYI: DB '0123456789ABCDEF'
+	END
+
+	
+		
