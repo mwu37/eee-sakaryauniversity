@@ -1,3 +1,5 @@
 # eee-sakaryauniversity
 
-2015-2019 Electrical and Electronics Engineering
+Sakarya University 
+Electrical and Electronics Engineering
+2015-2019
